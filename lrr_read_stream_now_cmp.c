@@ -15,6 +15,8 @@
 #include "ctrl_chars.h"
 #include "serial_open.h"
 
+#include "gitversion.h"
+
 static char* now_tc(struct timeval *arrived, char* buf, int limit)
 {
     int f;

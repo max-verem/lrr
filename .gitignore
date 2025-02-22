@@ -1,0 +1,14 @@
+gitversion.h
+*.o
+lrr_emul
+lrr_read
+lrr_read_stream_now_cmp
+stm32_read_stream_now_cmp
+*~
+*.bak
+*.bak1
+*.q
+*.q1
+*.q2
+*.nvvp
+*.valgrind

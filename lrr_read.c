@@ -1,9 +1,3 @@
-/*
-
-    gcc -Wall lrr_read.c -o lrr_read
-
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,6 +14,8 @@
 
 #include "ctrl_chars.h"
 #include "serial_open.h"
+
+#include "gitversion.h"
 
 static int now(char* buf, int limit)
 {

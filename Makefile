@@ -7,8 +7,11 @@ LDFLAGS=$(DEBUG) -ldl -lpthread -lm
 
 all: $(TARGETS)
 
-%: %.c
+%: %.c gitversion.h
 	$(CC) -o $@ $< $(LDFLAGS)
+
+./gitversion.h:
+	echo -e "#ifndef GITVERSION_H\n#define GITVERSION_H\n#define GITVERSION \""`git describe --always 2> /dev/null`"\"\n#endif\n" > ./gitversion.h
 
 clean:
 	rm -f \

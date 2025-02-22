@@ -14,6 +14,8 @@
 
 #include "serial_open.h"
 
+#include "gitversion.h"
+
 /*
     "18:36:59:24 +0000\r"
 */
