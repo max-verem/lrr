@@ -1,9 +1,3 @@
-/*
-
-    gcc lrr_emul.c -o lrr_emul
-
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,6 +11,8 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <sys/time.h>
+
+#include "serial_open.h"
 
 /*
     "18:36:59:24 +0000\r"
@@ -44,7 +40,6 @@ int main(int argc, char** argv)
     int r, fd, i;
     char buf[128];
     char* serial_dev;
-    struct termios newtio;
 
     if(argc == 1)
         serial_dev = "/dev/ttyS0";
@@ -57,36 +52,9 @@ int main(int argc, char** argv)
     fprintf(stderr, "%s\n", buf);
 
     /* open serial port */
-    fd = open(serial_dev, O_RDWR | O_NOCTTY );
-
-    /* check if port opened */
+    fd = serial_open(serial_dev);
     if(fd < 0)
-    {
-        r = errno;
-        fprintf(stderr, "%s: failed to open [%s], r=%d (%s)\n",
-            __FUNCTION__, serial_dev, r, strerror(r));
-        return -r;
-    };
-
-    /* configure serial device */
-    memset(&newtio, 0, sizeof(struct termios));     /* clear struct for new port settings */
-    newtio.c_iflag = IGNPAR;                        /* ignore bytes with parity errors */
-    newtio.c_oflag = 0;                             /* Raw output */
-    newtio.c_lflag = 0;                             /* enable canonical input */
-    newtio.c_cc[VTIME] = 1;                         /* inter-character timer unused */
-    newtio.c_cc[VMIN] = 1;                          /* blocking read until 5 chars received */
-    newtio.c_cflag =
-        B9600 |
-//        PARENB |
-//        PARODD |
-        CS8 |
-        CREAD |
-        CLOCAL;
-    tcflush(fd, TCIFLUSH);
-    tcsetattr(fd, TCSANOW, &newtio);
-
-    /* discard all data in buffers */
-    tcflush(fd, TCIOFLUSH);
+        return -1;
 
 //    write(fd, "^U", 2);
 

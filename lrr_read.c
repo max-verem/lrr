@@ -1,6 +1,6 @@
 /*
 
-    gcc lrr_read.c -o lrr_read
+    gcc -Wall lrr_read.c -o lrr_read
 
 */
 
@@ -17,6 +17,9 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <sys/time.h>
+
+#include "ctrl_chars.h"
+#include "serial_open.h"
 
 static int now(char* buf, int limit)
 {
@@ -41,7 +44,6 @@ int main(int argc, char** argv)
     int r, fd, i;
     char buf[128];
     const char* serial_dev;
-    struct termios newtio;
 
     if(argc == 1)
         serial_dev = "/dev/ttyUSB0";
@@ -51,47 +53,21 @@ int main(int argc, char** argv)
     fprintf(stderr, "Will use [%s] serial device (pass another as arg if needed)\n", serial_dev);
 
     /* open serial port */
-    fd = open(serial_dev, O_RDWR | O_NOCTTY );
-
-    /* check if port opened */
+    fd = serial_open(serial_dev);
     if(fd < 0)
-    {
-        r = errno;
-        fprintf(stderr, "%s: failed to open [%s], r=%d (%s)\n",
-            __FUNCTION__, serial_dev, r, strerror(r));
-        return -r;
-    };
+        return -1;
 
-    /* configure serial device */
-    memset(&newtio, 0, sizeof(struct termios));     /* clear struct for new port settings */
-    newtio.c_iflag = IGNPAR;                        /* ignore bytes with parity errors */
-    newtio.c_oflag = 0;                             /* Raw output */
-    newtio.c_lflag = 0;                             /* enable canonical input */
-    newtio.c_cc[VTIME] = 1;                         /* inter-character timer unused */
-    newtio.c_cc[VMIN] = 1;                          /* blocking read until 5 chars received */
-    newtio.c_cflag =
-        B9600 |
-//        PARENB |
-//        PARODD |
-        CS8 |
-        CREAD |
-        CLOCAL;
+    /* <ctrl>+S X-OFF terminates reporting.*/
+    write(fd, &ctrl_s, 1);
+    sleep(1);
     tcflush(fd, TCIFLUSH);
-    tcsetattr(fd, TCSANOW, &newtio);
-
-    /* discard all data in buffers */
-    tcflush(fd, TCIOFLUSH);
-
-//    write(fd, "^U", 2);
 
     while(1)
     {
-        unsigned char ctrl_r = 0x12;
-
-
         now(buf, sizeof(buf));
-        fprintf(stderr, "\n****** %s\n", buf);
+        fprintf(stderr, "\n@ %s\n", buf);
 
+        /* <ctrl>+R Report Time Address, User Groups and Status as selected. */
         write(fd, &ctrl_r, 1);
         sleep(1);
 
@@ -99,7 +75,7 @@ int main(int argc, char** argv)
         fprintf(stderr, "[%d]:", r);
         for(i = 0; i < r; i++)
             fprintf(stderr, " %.2X", buf[i]);
-        fprintf(stderr, "\n###### ");
+        fprintf(stderr, "\n> ");
         for(i = 0; i < r; i++)
             fprintf(stderr, "%c", buf[i]);
         fprintf(stderr, "\n");
