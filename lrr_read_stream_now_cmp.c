@@ -65,7 +65,7 @@ int main(int argc, char** argv)
             if(s)
             {
                 buf[s] = 0;
-                fprintf(stderr, "> [%s] {%d}\n", buf, s);
+                fprintf(stderr, "\n> [%s] {%d}\n", buf, s);
                 if(s == 17)
                 {
                     int hh = 0, mm = 0, ss = 0, ff = 0;
